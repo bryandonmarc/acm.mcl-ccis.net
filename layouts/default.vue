@@ -1,11 +1,48 @@
 <template>
   <div>
+    <LazyNavHeader :logo-url="getHome.logo.url" />
     <Nuxt />
+    <LazyNavFooter :cover-url="getHome.cover.url" />
     <mq-layout mq="sm">
-      <SlideOverMenu></SlideOverMenu>
+      <LazySlideOverMenu :logo-url="getHome.logo.url" />
     </mq-layout>
   </div>
 </template>
+
+<script>
+import { mapGetters, mapMutations } from 'vuex'
+const isEmpty = require('lodash/isEmpty')
+
+export default {
+  async fetch() {
+    if (isEmpty(this.getHome)) {
+      this.setHome(
+        await this.$strapi.graphql({
+          query: `
+          query {
+            home {
+              title
+              cover {
+                url
+              }
+              logo {
+                url
+              }
+            }
+          }
+      `,
+        })
+      )
+    }
+  },
+  computed: {
+    ...mapGetters('home', ['getHome']),
+  },
+  methods: {
+    ...mapMutations('home', ['setHome']),
+  },
+}
+</script>
 
 <style>
 /* font-family: 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
@@ -26,5 +63,11 @@ html {
 *::after {
   box-sizing: border-box;
   margin: 0;
+}
+</style>
+
+<style lang="scss">
+nav.scrolled {
+  @apply shadow-2xl border-b-0 bg-primary;
 }
 </style>

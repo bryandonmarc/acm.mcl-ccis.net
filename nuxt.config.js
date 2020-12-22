@@ -2,7 +2,7 @@ require('dotenv').config()
 
 export default {
   // Target (https://go.nuxtjs.dev/config-target)
-  target: 'static',
+  target: 'server',
 
   // Global page headers (https://go.nuxtjs.dev/config-head)
   head: {
@@ -11,6 +11,7 @@ export default {
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: '' },
+      { 'http-equiv': 'Accept-CH', content: 'DPR, Viewport-Width, Width' },
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   },
@@ -19,10 +20,34 @@ export default {
   css: [],
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
-  plugins: [],
+  plugins: [{ src: '~~/node_modules/vue-rellax/lib/nuxt-plugin', ssr: false }],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
   components: true,
+
+  // https://bithacker.dev/use-express-with-nuxt-js
+  serverMiddleware: [{ path: '/api', handler: '~/api/webhook.js' }],
+
+  // Smooth-scrolling in Nuxt (https://stackoverflow.com/a/58333766)
+  router: {
+    scrollBehavior(to) {
+      if (to.hash) {
+        return window.scrollTo({
+          top: () => {
+            try {
+              return (
+                document.querySelector(to.hash).offsetTop + window.innerHeight
+              )
+            } catch (e) {
+              return 0
+            }
+          },
+          behavior: 'smooth',
+        })
+      }
+      return window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+  },
 
   // Modules for dev and build (recommended) (https://go.nuxtjs.dev/config-modules)
   buildModules: [
@@ -48,10 +73,15 @@ export default {
     'nuxt-mq',
     // https://github.com/Developmint/nuxt-webfontloader
     'nuxt-webfontloader',
+    // https://dev.auth.nuxtjs.org/guide/
+    '@nuxtjs/auth-next',
+    // https://axios.nuxtjs.org/
+    // '@nuxtjs/axios',
   ],
 
   strapi: {
-    // Options
+    entities: ['authors', 'posts', 'home'],
+    url: 'http://strapi.acm.mcl-ccis.net',
   },
 
   cloudinary: {
@@ -77,8 +107,12 @@ export default {
 
   webfontloader: {
     google: {
-      families: ['Inter:300,400,600&display=swap'],
+      families: ['Inter:300,400,500,600&display=swap'],
     },
+  },
+
+  auth: {
+    // Options
   },
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
